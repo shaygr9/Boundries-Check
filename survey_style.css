@@ -1,0 +1,43 @@
+ul.jspsych-survey-likert-opts:before {
+    width: 85%;
+    /*margin-left: 150px;*/
+    /*margin-right: 150px;*/
+    font-family: 'Open Sans', 'Arial', 'sans-serif';
+    font-size: 120%;
+}
+
+ul.jspsych-survey-likert-opts {
+    width: 50%;
+    /*margin-left: 150px;*/
+    /*margin-right: 150px;*/
+    font-family: 'Open Sans', 'Arial', 'sans-serif';
+    font-size: 110%;
+    padding-bottom: 10px;
+
+}
+
+li.jspsych-survey-likert-opts:before {
+    width: 7px;
+    color: #4CAF50;
+    font-family: 'Open Sans', 'Arial', 'sans-serif';
+    font-size: 110%;
+}
+
+li.jspsych-survey-likert-opts {
+    width: 7px;
+    color: #4CAF50;
+    font-family: 'Open Sans', 'Arial', 'sans-serif';
+    font-size: 110%;
+}
+
+li {
+    font-family: 'Open Sans', 'Arial', 'sans-serif';
+    font-size: 110%;
+}
+
+#jspsych-survey-likert-next {
+    font-size: 22px;
+    padding: 0.2px 0.2px;
+    border-radius: 4px;
+    border: 2px solid #6b6b6b;
+}
