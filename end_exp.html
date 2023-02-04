@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Stopmotion Memory</title>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/jspsych.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/plugins/jspsych-survey-text.js"></script>
+    <script src="/assets/javascripts/jatos.js"></script>
+    <link href="/study_assets_root/Image_series_boundary_check/debrief.css" rel="stylesheet" type="text/css"></link>
+</head>
+<body>
+</body>
+<script>
+
+    jatos.onLoad(function () {
+        jatos.waitSendDataOverlayConfig = {show: false}; //This line removes the overlay caused by a bug in jatos 3.6.1
+
+        var redirect_url = jatos.componentJsonInput.url;
+
+        var timeline = [];
+
+        // var total_correct = jatos.studySessionData.total_validation_n_correct + jatos.studySessionData.total_test_n_correct;
+        // var total_n_questions = jatos.studySessionData.n_questions + jatos.studySessionData.n_validation_qs;
+        var total_correct = jatos.studySessionData.total_test_n_correct;//+ jatos.studySessionData.total_catch_n_correct;
+        var total_n_questions = jatos.studySessionData.n_questions;// + jatos.studySessionData.n_catch_qs;
+
+        /* End-exp trial */
+        var end_exp_trial = {
+            type: "html-keyboard-response",
+            stimulus: "<div style='float: center; width: 70%;'><p align='left'; style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 130%; line-height: 1.5em; text-align: left\">" +
+                "Well done! You finished the experiment!</div><div style='float: center; width: 70%;'><p align='left'; style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 130%; line-height: 1.5em; text-align: left\">" +
+                "<br>Thank you for taking part. We are conducting this study because we are interested in human memory and how surprising occurrences" +
+                " affect our memory. If you have questions or would like more information, please contact:" +
+                "<br><br><i>Researcher:<br>Shay Grunwald<br>Message via Prolific or shay.grunwald@mail.huji.ac.il</i>" +
+                "<br><br>Press any key to end the experiment.</p></div>"
+        };
+        timeline.push(end_exp_trial);
+
+        // end study function
+        var end_study_fn = function () {
+            var redirect_fn = function () {
+                return window.location.replace(redirect_url);
+            };
+            jatos.endStudyAjax(true, "REDIRECTED_" + jatos.studySessionData.prolific_ID, redirect_fn);
+        };
+
+        jsPsych.init({
+            timeline: timeline,
+            show_preload_progress_bar: false,
+            exclusions: {
+                min_width: jatos.studySessionData.min_width,
+                min_height: jatos.studySessionData.min_height
+            },
+            on_finish: function () {
+                jatos.submitResultData('', end_study_fn);
+            }
+        })
+
+    });
+
+
+</script>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Picture-series memory</title>
+    <script src="/assets/javascripts/jatos.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/jspsych.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/plugins/jspsych-html-keyboard-response.js"></script>
+</head>
+<body>
+</body>
+<script>
+
+    jatos.onLoad(function () {
+
+        var timeline = [];
+
+        /* add general instructions */
+        var instruction_trial1 = {
+            stimulus:
+                "<div align=\"center\" style='display: flex; flex-direction: column; margin: auto; flex: 1 1 100%; width: 90%; height: 90%;'>" +
+                "<div style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 130%; line-height: 1.5em;\">" +
+                "<p style=\"width: 90%; text-align: justify\">" +
+                "<br>" +
+                "In the following experiment, you will be presented with 18 series of images.<br>" +
+                "Each image series will include <u>more than one category</u> of images (e.g. people play Frisbee, people building sand castle).<br><br>" +
+                "Please press SPACE whenever you notice a switch between one category of images and another.<br><br>" +
+                "Note you <u>will not</u> receive indication the button press was recorded, but all button presses are recorded" +
+                "<br><br><u>Please watch the images very attentively.</u>" +
+                "<br><br>Press any key to start the session.</p></div></div>",
+            type: "html-keyboard-response"
+        };
+        timeline.push(instruction_trial1);
+
+        /* add practice instructions */
+        // var instruction_trial2 = {
+        //     type: "html-keyboard-response",
+        //     stimulus: "<div align=\"center\" style='display: flex; flex-direction: column; margin: auto; flex: 1 1 100%; width: 90%; height: 90%;'>" +
+        //         "<div style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size:130%; line-height: 1.5em;\">" +
+        //         "<p style=\"width: 90%; text-align: justify\">" +
+        //         "<br>" +
+        //         "In this practice session, we will present you with a series of images, similar to those that will appear in the experiment." +
+        //         "<br>When watching the images you will be asked to determine if the object can fit in a shoe-box or not:" +
+        //         "<br><br>Press the letter <strong>v</strong> if the object <u>can</u> fit in a shoe-box" +
+        //         "<br>Press the letter <strong>n</strong> if the object <u>can't</u> fit in a shoe-box" +
+        //         "<br><br>The example images will be followed by a few practice questions." +
+        //         "<br>When answering the questions, you will be presented with two images and asked to determine which image appeared first. <br><br>" +
+        //         "Press the letter <strong>d</strong> if the <strong>left image</strong> appeared first.<br>" +
+        //         "Press the letter <strong>k</strong> if the <strong>right image</strong> appeared first.<br>" +
+        //         "Press the letter <strong>b</strong> if the <strong>images didn't appear</strong>.<br>" +
+        //         "<br>Press any key to start.</p></div></div>"
+        // }; //TODO: No practice in this experiment.
+        //
+        // timeline.push(instruction_trial2);
+
+        jsPsych.init({
+            timeline: timeline,
+            exclusions: {
+                min_width: jatos.studySessionData.min_width,
+                min_height: jatos.studySessionData.min_height
+            },
+            on_finish: function () {
+                jatos.submitResultData('', jatos.startNextComponent);
+            }
+        })
+    });
+
+</script>
+
+
+

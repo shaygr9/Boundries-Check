@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/jspsych.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/plugins/jspsych-html-button-response.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jquery-3.3.1.min.js" type="text/javascript"></script>
+    <script src="/assets/javascripts/jatos.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/stimuli_var.js"></script>
+
+    <title>Picture-series memory</title>
+</head>
+<body>
+<div align="center" text-align="center">
+    <!-- The HTML has three parts at the moment - instuctions, a div that holds the image and the image itself. We use the div here to change the border of the image, not the image itself,
+      since the image will be changing all the time. You may want to change the first picture to be blank since it will probably be presented for a very short time. You
+      could also add a button that's enabled only after the images finish loading (there's an example of that in test_video_demo) and then set it so pressing the button will
+      start the series presentation -->
+    <p id="instructions"
+       style="font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; line-height: normal; vertical-align: middle; text-align: justify;
+       width: 70%;">
+        Press <b>v</b> if the object the lead-character is using can be put in a shoe-box.<br> Otherwise, press <b>n</b> if the object can not be put
+        in a shoe-box.</p>
+    <div id="bar" style="display: flex; width: 500px; background-color: #ddd">
+        <div id="progress" style="width: 1%; height: 30px; background-color: #4CAF50"></div>
+    </div>
+    <div id="img_wrapper" style="height: 380px; width: 380px; border: 25px solid #25253b; ">
+        <img id='img' src='continue.jpg' style="height: 380px; width: 380px;"></div>
+    <br>
+    <button id="continue_btn" disabled style="font-size: 22px; padding: 0.2px 0.2px; border-radius: 4px; border: 2px solid #6b6b6b;">Continue</button>
+</div>
+
+<style>
+    table {
+        border: 1px solid black;
+        border-collapse: collapse;
+        width: 100%;
+        text-align: center;
+        /*vertical-align: middle;*/
+        /*position:absolute;*/
+        /*top:50%;*/
+        /*left:50%;*/
+    }
+
+    th, td {
+        /* border: 1px solid black;
+        border-collapse: collapse; */
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+</body>
+</html>
+
+<script>
+    //todo: change text!!
+    var img_width = "380px";
+    if (window.innerWidth >= 1800) {
+        document.getElementById("img_wrapper").style.width = '440px';
+        document.getElementById("img_wrapper").style.height = '440px';
+
+        document.getElementById("img").style.width = '440px';
+        document.getElementById("img").style.height = '440px';
+
+        img_width = "440px";
+    }
+    // alert(img_width);
+    jatos.onLoad(function () {
+        var img_srcs = ["Stimuli/training_qs/sq_training_qs_1.jpg", "Stimuli/training_qs/sq_training_qs_2.jpg",
+            "Stimuli/training_qs/sq_training_qs_3.jpg", "Stimuli/training_qs/sq_training_qs_4.jpg", "Stimuli/training_qs/sq_training_qs_5.jpg"];
+        // console.log(img_srcs)
+        // alert()
+        var choice_arr = ['v', 'n'];
+        var fix_path = "fixation_img.jpg";
+
+        var result_data = {};
+        result_data.result_type = 'run_practice';
+        result_data.prolific_ID = jatos.studySessionData.prolific_ID;
+
+        var timeline = [];
+
+        jsPsych.pluginAPI.preloadImages(img_srcs, function () {
+            startExperiment();
+        }, function (file) {
+            updateLoadedCount(file);
+        });
+
+        var n_loaded = 0;
+
+        jsPsych.pluginAPI.preloadImages(img_srcs, function () {
+            startExperiment();
+        }, function (file) {
+            updateLoadedCount(file);
+        });
+
+        function updateLoadedCount(file) {
+            n_loaded++;
+            var percentcomplete = n_loaded / img_srcs.length * 100;
+
+            // could put something fancier here, like a progress bar
+            // or updating text in the DOM.
+            document.getElementById("progress").style.width = (percentcomplete / 2) + '%';
+            if (percentcomplete == img_srcs.length) {
+                document.getElementById("progress").style.display = "none"; // HERE - remove after all loaded
+                document.getElementById("continue_btn").disabled = false;
+                continue_btn = document.getElementById("continue_btn");
+                continue_btn.addEventListener('click', function () {
+                    document.getElementById("img_wrapper").focus();
+                    document.getElementById("continue_btn").disabled = true;
+                    initImagesAndQs();
+                })
+            }
+            console.log('Loaded ' + (percentcomplete / 2) + '% of images');
+        }
+
+        function startExperiment() {
+            console.log('All images were loaded');
+
+            document.getElementById("continue_btn").disabled = false;
+            continue_btn = document.getElementById("continue_btn");
+            continue_btn.addEventListener('click', function () {
+                document.getElementById("img_wrapper").focus();
+                document.getElementById("continue_btn").disabled = true;
+                initImagesAndQs();
+            })
+        }
+
+        function initImagesAndQs() {
+
+            var view_fix = {
+                type: "html-keyboard-response",
+                stimulus: "",
+                trial_duration: 500,
+                response_ends_trial: false,
+                on_start: function (view_fix) {
+                    var img_idx = jsPsych.timelineVariable('img_idx', true);
+
+                    view_fix.stimulus =
+                        "<div align='center' style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; padding-top: 10px;\">" +
+                        "<p id=instructions style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; line-height: normal; vertical-align: middle; text-align: justify; width: 70%;\">" +
+                        "Press <b>v</b> if the object the lead-character is using can be put in a shoe-box.<br> Otherwise, press <b>n</b> if the object can not be " +
+                        "put in a shoe-box.</p> " +
+                        "<table><tr>" +
+                        " <td> <img src='" + fix_path + "' style='width: " + img_width + "; border: 20px solid #fff300;'></td>" +
+                        "</tr></table>"
+
+                },
+                on_finish: function (data) {
+
+                }
+            };
+            var view_img = { //TODO: update to new practice(for event boundaries).
+                type: "html-keyboard-response",
+                stimulus: "",
+                choices: choice_arr,
+                trial_duration: 2500,
+                response_ends_trial: false,
+                data: function () {
+                    return {};
+
+                },
+                on_start: function (view_img) {
+                    var img_idx = jsPsych.timelineVariable('img_idx', true);
+                    view_img.stimulus =
+                        "<div align='center' style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; padding-top: 10px;\">" +
+                        "<p id=instructions style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; line-height: normal; vertical-align: middle; text-align: justify; width: 70%;\">" +
+                        "Press <b>v</b> if the object the lead-character is using can be put in a shoe-box.<br> Otherwise, press <b>n</b> if the object can not be " +
+                        "put in a shoe-box.</p> " +
+                        "<table><tr>" +
+                        " <td> <img src='" + img_srcs[img_idx] + "' style='width: " + img_width + "; border: 20px solid #fff300; '></td>" +
+                        "</tr></table>"
+
+                }
+            };
+            var yes_no_q_trial = {
+                type: "html-keyboard-response",
+                stimulus: "",
+                choices: [68, 75, 66],
+                data: function () {
+                    curr_true_idx = yes_no_q_trial.data.true_idx;
+                    //shay
+                    return {
+                        true_idx: curr_true_idx,
+                        category_name: jsPsych.timelineVariable('category_name', true),
+                        category_num: jsPsych.timelineVariable('category_num', true),
+                        trial_name: "practice_question",
+                        q_idx: jsPsych.timelineVariable('q_idx', true),
+                        all_q_idx: jsPsych.timelineVariable('all_q_idx', true),
+                        block_q_idx: jsPsych.timelineVariable('block_q_idx', true),
+                        block_num: jsPsych.timelineVariable('block_num', true),
+                        block_idx: jsPsych.timelineVariable('block_idx', true),
+                        q_num: jsPsych.timelineVariable('q_num', true),
+                        // conf_level: jsPsych.timelineVariable('conf_level', true)
+                    };
+
+                },
+                on_start: function (yes_no_q_trial) {
+                    var category_name = jsPsych.timelineVariable('category_name', true);
+                    var category_num = jsPsych.timelineVariable('category_num', true);
+                    var q_num = jsPsych.timelineVariable('q_num', true);
+                    var q_type_L = jsPsych.timelineVariable('q_type_L', true);
+                    var q_type_R = jsPsych.timelineVariable('q_type_R', true);
+                    var true_idx = jsPsych.timelineVariable('true_idx', true);
+                    var block_num = jsPsych.timelineVariable('block_num', true);
+                    var q_L = jsPsych.timelineVariable('q_L', true);
+                    var q_R = jsPsych.timelineVariable('q_R', true);
+
+                    yes_no_q_trial.data.true_idx = true_idx;
+                    yes_no_q_trial.data.correct_responses = [choice_arr[true_idx]];
+
+                    var left_path = "/study_assets_root/Image_series_boundary_check/Stimuli/training_qs/sq_training_qs_" + q_L + ".jpg";
+                    var right_path = "/study_assets_root/Image_series_boundary_check/Stimuli/training_qs/sq_training_qs_" + q_R + ".jpg";
+                    var img_width = "350px";
+
+                    if (window.innerWidth >= 1800) {
+                        img_width = "440px"
+                    }
+
+                    yes_no_q_trial.stimulus =
+                        "<div align='center' style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; padding-top: 10px;\">" +
+                        "<p style='text-align: center'> Which of the following images appeared <strong>first</strong>?<br><br>" +
+                        "Press the letter <strong>d</strong> if the <u>left image</u> appeared first.<br>" +
+                        "Press the letter <strong>k</strong> if the <u>right image</u> appeared first.<br>" +
+                        "Press the letter <strong>b</strong> if the images <u>didn't appear</u>.</p>" +
+                        "<table><tr>" +
+                        " <td> <img src='" + left_path + "' style='width: " + img_width + "; border: 30px solid #ffffff; '></td>" +
+                        " <td> <img src='" + right_path + "' style='width: " + img_width + "; border: 30px solid #ffffff; '></td>" +
+                        "</tr></table>"
+
+                    // images.push('/study_assets_root/Image_series_boundary_check/' + left_path);
+                    // images.push('/study_assets_root/Image_series_boundary_check/' + right_path);
+
+                },
+                on_finish: function (data) {
+                    if (data.correct_responses.includes(data.key_press)) {
+                        data.correct = true;
+                    } else {
+                        data.correct = false
+                    }
+                }
+            };
+
+            var result_data = {};
+            result_data.prolific_ID = jatos.studySessionData.prolific_ID;
+
+
+            /* crate timeline of qs for a block */
+            var cur_img;
+            for (var i = 0; i < img_srcs.length; i++) { // go over blocks
+                cur_img = {
+                    img_idx: i,
+                }
+                timeline.push({ // add image to timeline
+                    timeline: [view_img],
+                    timeline_variables: [cur_img]
+                })
+                timeline.push({ // add fixation to timeline
+                    timeline: [view_fix],
+                    timeline_variables: [cur_img]
+                })
+            }
+            /* add practice qs */
+            timeline.push({
+                type: 'html-keyboard-response',
+                stimulus: "<div align=\"center\" style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; padding-top: 100px;\">" +
+                    "<p style=\"font-family: 'Arial', sans-serif; font-size: 120%;\">" +
+                    "You will now be presented with questions about the series of images you watched." +
+                    "<br><br>Press any key to start</p></div>",
+                data: {transition_screen: 'pre_test_q'}
+            })
+            var cur_qs;
+            var question_count = 2
+            var practice_qs = [{pair_idx: [3, 1], true_idx: 1}, {pair_idx: [2, 5], true_idx: 0}]
+            for (var i = 0; i < question_count; i++) { // to categories in a block
+                // console.log(">>"+JSON.stringify(qs_order));
+                // alert(qs_pairs.length);
+
+                cur_qs = {
+                    qs_idx: i,
+                    q_L: practice_qs[i].pair_idx[0],
+                    q_R: practice_qs[i].pair_idx[1],
+                    true_idx: practice_qs[i].true_idx,
+
+                }
+                // console.log(cur_qs);
+                timeline.push({
+                    timeline: [yes_no_q_trial],
+                    timeline_variables: [cur_qs]
+                })
+            }
+
+            /* end of practice part */
+            timeline.push({
+                type: 'html-keyboard-response',
+                stimulus: "<div align=\"center\" style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; padding-top: 100px;\">" +
+                    "<p style=\"font-family: 'Arial', sans-serif; font-size: 120%;\">" +
+                    "This is the end of the practice session." +
+                    "<br><br>Press any key to start the experiment</p></div>",
+                data: {transition_screen: 'pre_test_q'}
+            })
+
+
+
+        var d = new Date();
+        var jspsych_init_time = d.getTime();
+        jsPsych.init({
+            timeline: timeline,
+            max_load_time: 10000,
+            exclusions: {
+                min_width: jatos.studySessionData.min_width,
+                min_height: jatos.studySessionData.min_height
+            },
+            on_start: function () {
+                var d = new Date();
+                var jspsych_init_time_present_series_practice = d.getTime();
+                result_data.jspsych_init_time_present_series_practice = jspsych_init_time_present_series_practice;
+
+            },
+            on_finish: function () {
+                var d = new Date();
+                var jspsych_finish_time_present_series_practice = d.getTime();
+                var jspsych_result_data = jsPsych.data.get().json();
+
+                result_data.jspsych_finish_time_present_series_practice = jspsych_finish_time_present_series_practice;
+                result_data.series_srcs = img_srcs;
+                var result_json = "[" + JSON.stringify(result_data) + "," + jspsych_result_data.substr(1, jspsych_result_data.length - 2) + "]";
+
+                jatos.submitResultData(result_json, jatos.startNextComponent);
+
+            }
+        })
+    }
+    })
+
+
+</script>

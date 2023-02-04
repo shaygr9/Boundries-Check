@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/jspsych.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jquery-3.3.1.min.js" type="text/javascript"></script>
+    <script src="/assets/javascripts/jatos.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/stimuli_var.js"></script>
+
+    <title>Picture-series memory</title>
+</head>
+<body>
+<div align="center" text-align="center">
+    <br><br>
+    <div style="display: flex; justify-content: center;">
+        <p id="instructions" style="font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; line-height: normal;
+       width: 70%;"><br>Loading...</p>
+    </div>
+    <br>
+    <div id="bar" style="display: flex; width: 500px; background-color: #ddd">
+
+        <div id="progress" style="width: 1%; height: 30px; background-color: #4CAF50"></div>
+    </div>
+</div>
+<style>
+    table {
+        border: 1px solid black;
+        border-collapse: collapse;
+        width: 100%;
+        text-align: center;
+        /*vertical-align: middle;*/
+        /*position:absolute;*/
+        /*top:50%;*/
+        /*left:50%;*/
+    }
+
+    th, td {
+        /* border: 1px solid black;
+        border-collapse: collapse; */
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+</body>
+</html>
+
+<script>
+
+    jatos.onLoad(function () {
+
+        /* post-questions message indicating the next block is about to begin */
+        var post_q_trial = {
+            type: "html-keyboard-response",
+            stimulus: "<div align=\"center\" style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; padding-top: 100px;\">" +
+                "<p style=\"font-family: 'Arial', sans-serif; font-size: 120%;\">" +
+                "You will now be presented with the next image series." +
+                "<br>Press any key to start the trial.</p></div>",
+            data: {transition_screen: 'post_test_q'}
+        };
+
+        /* post-questions message indicating the end of the test part */
+        var post_last_q_trial = {
+            type: "html-keyboard-response",
+            stimulus: "<div align=\"center\" style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 120%; padding-top: 100px;\">" +
+                "<p style=\"font-family: 'Arial', sans-serif; font-size: 120%;\">" +
+                "That concludes the test.<br>We will now ask you some general questions about the experiment.<br>Press any key to start.</p></div>",
+            data: {transition_screen: 'post_test_q'}
+        };
+
+        var timeline = [];
+
+        var block_counter = jatos.studySessionData.block_idx;
+        var total_blocks = jatos.studySessionData.n_blocks;
+
+        /* add message in the end of qs */
+        if (block_counter < total_blocks - 1) {
+            timeline.push(post_q_trial);
+        } else {
+            timeline.push(post_last_q_trial);
+        }
+        var d = new Date();
+        var jspsych_init_time = d.getTime();
+        jsPsych.init({
+            timeline: timeline,
+            max_load_time: 10000,
+            exclusions: {
+                min_width: jatos.studySessionData.min_width,
+                min_height: jatos.studySessionData.min_height
+            },
+            on_finish: function () {
+                var d = new Date();
+                var jspsych_finish_time = d.getTime();
+                var result_data = {}
+                result_data.result_type = 'between-blocks';
+                result_data.jspsych_init_time = jspsych_init_time;
+                result_data.jspsych_finish_time = jspsych_finish_time;
+                var jspsych_result_data = jsPsych.data.get().json();
+
+                var result_json = "[" + JSON.stringify(result_data) + "," + jspsych_result_data.substr(1, jspsych_result_data.length - 2) + "]";
+
+                /* Either repeats current component or jumps to next, depending on whether all blocks have been viewed */
+                if (jatos.studySessionData.block_idx < jatos.studySessionData.n_blocks - 1) {
+                    jatos.studySessionData.block_idx = jatos.studySessionData.block_idx + 1;
+                    jatos.submitResultData(result_json, function () {
+                        jatos.startComponentByPos(11); //TODO: number of component view_stimuli
+                    });
+                } else {
+                    jatos.submitResultData(result_json, jatos.startNextComponent);
+                }
+            }
+        })
+    })
+</script>

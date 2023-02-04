@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/jspsych.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jspsych-6.0.1/plugins/jspsych-html-button-response.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/jquery-3.3.1.min.js" type="text/javascript"></script>
+    <script src="/assets/javascripts/jatos.js"></script>
+    <script src="/study_assets_root/Image_series_boundary_check/stimuli_var.js"></script>
+
+    <title>Picture-series memory</title>
+</head>
+<body>
+<div align="center" text-align="center">
+    <!-- The HTML has three parts at the moment - instuctions, a div that holds the image and the image itself. We use the div here to change the border of the image, not the image itself,
+      since the image will be changing all the time. You may want to change the first picture to be blank since it will probably be presented for a very short time. You
+      could also add a button that's enabled only after the images finish loading (there's an example of that in test_video_demo) and then set it so pressing the button will
+      start the series presentation -->
+    <p id="instructions"
+       style="font-family: 'Open Sans', 'Arial', sans-serif; font-size: 140%; line-height: normal; vertical-align: middle; text-align: justify;
+       width: 70%;">
+        <br>Press <b>SPACE</b> whenever you experience a switch from one image category to another.
+    <div id="bar" style="display: flex; width: 500px; background-color: #ddd">
+        <div id="progress" style="width: 1%; height: 30px; background-color: #4CAF50"></div>
+    </div>
+    <br>
+    <div id="img_wrapper" style="height: 380px; width: 380px; border: 25px solid #25253b; ">
+        <img id='img' src='continue.jpg' style="height: 380px; width: 380px;"></div>
+    <br>
+    <button id="continue_btn" disabled style="font-size: 22px; padding: 0.2px 0.2px; border-radius: 4px; border: 2px solid #6b6b6b;">Continue</button>
+</div>
+
+<style>
+    table {
+        border: 1px solid #25253b;
+        border-collapse: collapse;
+        width: 100%;
+        text-align: center;
+        /*vertical-align: middle;*/
+        /*position:absolute;*/
+        /*top:50%;*/
+        /*left:50%;*/
+    }
+
+    th, td {
+        /*border: 50px solid #25253b;*/
+        /*border-collapse: collapse;*/
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+</body>
+</html>
+
+<script>
+
+    var img_width = "380px";
+    if (window.innerWidth >= 1800) {
+        document.getElementById("img_wrapper").style.width = '440px';
+        document.getElementById("img_wrapper").style.height = '440px';
+
+        document.getElementById("img").style.width = '440px';
+        document.getElementById("img").style.height = '440px';
+
+        img_width = "440px";
+    }
+    // alert(img_width);
+    jatos.onLoad(function () {
+        var version = jatos.studySessionData.subj_cond_obj.version
+        var order_idx = jatos.studySessionData.block_idx;
+        var A_idx = order_idx;
+        var B_idx = order_idx;
+        // var C_idx = A_idx + 1;
+        var img_srcs = [build_series(combination_versions[version][order_idx], A_idx, B_idx, 0)];
+        console.log("version-->", version)
+        console.log(combination_versions[version])
+        console.log(combination_versions[version][order_idx])
+        console.log("order-->", jatos.studySessionData.subj_cond_obj.order)
+
+        // var img_srcs = [build_series(combinations[order_idx], A_idx, B_idx, 0)]; #no counter balancing
+        // img_srcs.push(build_series(combinations[order_idx][1], C_idx, B_idx, 2));
+        // console.log(img_srcs)
+        // alert()
+        jatos.studySessionData.img_srcs = img_srcs;
+        jatos.studySessionData.category_name = img_srcs[0][0].category_name;
+        // console.log(img_srcs[0])
+        // alert(jatos.studySessionData.category_name)
+
+        var choice_arr = [' '];
+        var fix_path = "fixation_img.jpg";
+
+        var result_data = {};
+        result_data.result_type = 'present_stimulus';
+        result_data.prolific_ID = jatos.studySessionData.prolific_ID;
+        var img_srcs_only = [fix_path]
+        for (let i = 0; i < img_srcs.length; i++) {
+            for (let j = 0; j < img_srcs[i].length; j++) {
+                img_srcs_only.push(img_srcs[i][j].src)
+            }
+        }
+        var timeline = [];
+
+        jsPsych.pluginAPI.preloadImages(img_srcs_only, function () {
+            startExperiment();
+        }, function (file) {
+            updateLoadedCount(file);
+        });
+
+        var n_loaded = 0;
+
+        jsPsych.pluginAPI.preloadImages(img_srcs_only, function () {
+            startExperiment();
+        }, function (file) {
+            updateLoadedCount(file);
+        });
+
+        function updateLoadedCount(file) {
+            n_loaded++;
+            var percentcomplete = n_loaded / img_srcs_only.length * 100;
+
+            // could put something fancier here, like a progress bar
+            // or updating text in the DOM.
+            document.getElementById("progress").style.width = (percentcomplete / 2) + '%';
+            if (percentcomplete == img_srcs_only.length) {
+                document.getElementById("progress").style.display = "none"; // HERE - remove after all loaded
+                document.getElementById("continue_btn").disabled = false;
+                continue_btn = document.getElementById("continue_btn");
+                continue_btn.addEventListener('click', function () {
+                    document.getElementById("img_wrapper").focus();
+                    document.getElementById("continue_btn").disabled = true;
+                    initImages();
+                })
+            }
+            console.log('Loaded ' + (percentcomplete / 2) + '% of images');
+        }
+
+        function startExperiment() {
+            console.log('All images were loaded');
+
+            document.getElementById("continue_btn").disabled = false;
+            continue_btn = document.getElementById("continue_btn");
+            continue_btn.addEventListener('click', function () {
+                document.getElementById("img_wrapper").focus();
+                document.getElementById("continue_btn").disabled = true;
+                initImages();
+            })
+        }
+
+        function initImages() {
+
+            var view_fix = {
+                type: "html-keyboard-response",
+                stimulus: "",
+                trial_duration: 500,
+                response_ends_trial: false,
+                data: function () {
+                    return {
+                        experiment_type: "fixation",
+                        img_idx: jsPsych.timelineVariable('img_idx', true),
+                        block_idx: jsPsych.timelineVariable('block_idx', true),
+                    };
+
+                }, on_start: function (view_fix) {
+                    var img_idx = jsPsych.timelineVariable('img_idx', true);
+                    var block_idx = jsPsych.timelineVariable('block_idx', true);
+
+                    view_fix.stimulus =
+                        "<div align='center'>" +
+                        "<p id=instructions style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 140%; line-height: normal; vertical-align: middle; text-align: justify; width: 70%;\">" +
+                        "<br>Press <b>SPACE</b> whenever you experience a switch from one image category to another.<br>" +
+                        "<table><tr>" +
+                        " <td> <img src='" + fix_path + "' style='width: " + img_width + "; border: 20px solid " +
+                        img_srcs[block_idx][img_idx].color +
+                        "; '></td>" +
+                        "</tr></table>"
+
+                }, on_finish: function (data) {
+                },
+
+            };
+            var view_img = {
+                type: "html-keyboard-response",
+                stimulus: "",
+                choices: choice_arr,
+                trial_duration: 2500,
+                response_ends_trial: false,
+                data: function () {
+                    return {
+                        experiment_type: "image",
+                        img_idx: jsPsych.timelineVariable('img_idx', true),
+                        block_idx: jsPsych.timelineVariable('block_idx', true),
+                    };
+
+                },
+                on_start: function (view_img) {
+                    var img_idx = jsPsych.timelineVariable('img_idx', true);
+                    var block_idx = jsPsych.timelineVariable('block_idx', true);
+
+                    view_img.stimulus =
+                        "<div align='center' >" +
+                        "<p id=instructions style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 140%; line-height: normal; vertical-align: middle; text-align: justify; width: 70%;\">" +
+                        "<br>Press <b>SPACE</b> whenever you experience a switch from one image category to another.<br>" +
+                        "<table><tr>" +
+                        " <td> <img src='" + img_srcs[block_idx][img_idx].src +
+                        "' style='width: " +
+                        img_width + "; border: 20px solid " +
+                        img_srcs[block_idx][img_idx].color +
+                        "; '></td>" +
+                        "</tr></table>"
+
+                }, on_finish: function (data) {
+                },
+            };
+
+            var result_data = {};
+            result_data.prolific_ID = jatos.studySessionData.prolific_ID;
+
+
+            /* crate timeline of qs for a block */
+            var cur_img;
+            for (var i = 0; i < img_srcs.length; i++) { // go over blocks
+
+                for (var j = 0; j < img_srcs[i].length; j++) { // go over current block
+                    cur_img = {
+                        img_idx: j,
+                        block_idx: i,
+                    }
+                    // console.log(cur_qs);
+                    timeline.push({ // add image to timeline
+                        timeline: [view_img],
+                        timeline_variables: [cur_img]
+                    })
+                    timeline.push({ // add fixation to timeline
+                        timeline: [view_fix],
+                        timeline_variables: [cur_img]
+                    })
+                }
+            }
+
+
+            var d = new Date();
+            var jspsych_init_time = d.getTime();
+            jsPsych.init({
+                timeline: timeline,
+                max_load_time: 10000,
+                exclusions: {
+                    min_width: jatos.studySessionData.min_width,
+                    min_height: jatos.studySessionData.min_height
+                },
+                on_start: function () {
+                    var d = new Date();
+                    var jspsych_init_time_present_series = d.getTime();
+                    result_data.jspsych_init_time_present_series = jspsych_init_time_present_series;
+
+                },
+                on_finish: function () {
+                    var d = new Date();
+                    var jspsych_finish_time_present_series = d.getTime();
+                    var jspsych_result_data = jsPsych.data.get().json();
+                    // console.log(jspsych_result_data)
+                    // alert()
+                    result_data.jspsych_finish_time_present_series = jspsych_finish_time_present_series;
+                    result_data.series_srcs = img_srcs;
+                    var result_json = "[" + JSON.stringify(result_data) + "," + jspsych_result_data.substr(1, jspsych_result_data.length - 2) + "]";
+
+
+                    jatos.submitResultData(result_json, jatos.startNextComponent);
+
+                }
+            })
+        }
+    })
+
+
+</script>
